@@ -22,10 +22,9 @@ tree_grammar = r"""
 
     statement_list: statement+ 
 
-    statement: (assignment | block) 
+    ?statement: assignment | block
 
-
-    block: (if_statement) _NL [_INDENT statement+ _DEDENT]
+    ?block: (if_statement) _NL [_INDENT statement_list _DEDENT]
 
     assignment: var "=" expression _NL*
 
@@ -63,16 +62,34 @@ parser = Lark(tree_grammar, parser='lalr', postlex=TreeIndenter())
 test_tree = """
 test=1
 test=2
-if test==1:
+if FIRSTIF==1:
     test2 = 2
-    if test==1:
+    test2 = 2
+    test2 = 2
+    if SECONDIF==1:
         test3=3
     test1 = 1
+    prev=1
 test=1
 """
 
+def translate(t):
+    try:
+        if t.data == "statement_list":
+            return '\n'.join(map(translate, t.children))
+        elif t.data == "block":
+            return '\n'.join(map(translate, t.children))
+        elif t.data == "if_statement":
+            print("IF STATEMENT")
+        print(t)
+    except TypeError:
+        print("error")
+            
+
 def test():
-    print(parser.parse(test_tree).pretty())
+    parse_tree = parser.parse(test_tree)
+    print(translate(parse_tree))
+    print(parse_tree.pretty())
 
 if __name__ == '__main__':
     test()
