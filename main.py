@@ -32,13 +32,15 @@ tree_grammar = r"""
 
     var: NAME
 
-    expression: var
-            | NUMBER 
+    ?expression: var
+            | literal 
             | expression ">" expression -> gt
             | expression "<" expression -> lt
             | expression ">=" expression -> ge
             | expression "<=" expression -> le
             | expression "==" expression -> eq
+
+    literal: NUMBER
 
     %import common.CNAME -> NAME
     %import common.INT -> NUMBER 
@@ -60,30 +62,24 @@ class TreeIndenter(Indenter):
 parser = Lark(tree_grammar, parser='lalr', postlex=TreeIndenter())
 
 test_tree = """
-test=1
-test=2
-if FIRSTIF==1:
-    test2 = 2
-    test2 = 2
-    test2 = 2
-    if SECONDIF==1:
-        test3=3
-    test1 = 1
-    prev=1
-test=1
+var1=1
+var2=2
 """
 
 def translate(t):
-    try:
-        if t.data == "statement_list":
-            return '\n'.join(map(translate, t.children))
-        elif t.data == "block":
-            return '\n'.join(map(translate, t.children))
-        elif t.data == "if_statement":
-            print("IF STATEMENT")
-        print(t)
-    except TypeError:
-        print("error")
+    # try:
+    if t.data == "statement_list":
+        return '\n'.join(map(translate, t.children))
+    elif t.data == "block":
+        return "{" + '\n'.join(map(translate, t.children)) + "}"
+    elif t.data == 'assignment':
+        lhs, rhs = t.children
+        return f'int {translate(lhs)} = {translate(rhs)};'
+    elif t.data in ["literal", "var"]:
+        return t.children[0]
+    # print(t)
+    # except TypeError:
+    #     print("error")
             
 
 def test():
