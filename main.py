@@ -2,9 +2,13 @@ from lark import Lark
 from lark.indenter import Indenter
 
 # tree_grammar = r"""
-#     ?start: _NL* block
+#     ?start: _NL* statement_list
 
-#     block: NAME | NAME _NL [_INDENT block+ _DEDENT]
+#     ?statement_list: statement+
+
+#     statement: NAME | block
+
+#     block: NAME _NL [_INDENT block+ _DEDENT]
 
 #     %import common.CNAME -> NAME
 #     %import common.WS_INLINE
@@ -13,17 +17,32 @@ from lark.indenter import Indenter
 
 #     _NL: /(\r?\n[\t ]*)+/
 # """
-
 tree_grammar = r"""
     ?start: _NL* statement_list
 
-    ?statement_list: statement+
+    statement_list: statement+ 
 
-    statement: NAME | block
+    statement: (assignment | block) 
 
-    block: NAME _NL [_INDENT block+ _DEDENT]
+
+    block: (if_statement) _NL [_INDENT statement+ _DEDENT]
+
+    assignment: var "=" expression _NL*
+
+    if_statement: "if" expression ":"
+
+    var: NAME
+
+    expression: var
+            | NUMBER 
+            | expression ">" expression -> gt
+            | expression "<" expression -> lt
+            | expression ">=" expression -> ge
+            | expression "<=" expression -> le
+            | expression "==" expression -> eq
 
     %import common.CNAME -> NAME
+    %import common.INT -> NUMBER 
     %import common.WS_INLINE
     %declare _INDENT _DEDENT
     %ignore WS_INLINE
@@ -42,17 +61,14 @@ class TreeIndenter(Indenter):
 parser = Lark(tree_grammar, parser='lalr', postlex=TreeIndenter())
 
 test_tree = """
-a
-    b
-    c
-        d
-        e
-    f
-        g
-h
-    i
-j
-k
+test=1
+test=2
+if test==1:
+    test2 = 2
+    if test==1:
+        test3=3
+    test1 = 1
+test=1
 """
 
 def test():
