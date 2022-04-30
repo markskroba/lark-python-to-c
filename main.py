@@ -1,22 +1,6 @@
 from lark import Lark
 from lark.indenter import Indenter
 
-# tree_grammar = r"""
-#     ?start: _NL* statement_list
-
-#     ?statement_list: statement+
-
-#     statement: NAME | block
-
-#     block: NAME _NL [_INDENT block+ _DEDENT]
-
-#     %import common.CNAME -> NAME
-#     %import common.WS_INLINE
-#     %declare _INDENT _DEDENT
-#     %ignore WS_INLINE
-
-#     _NL: /(\r?\n[\t ]*)+/
-# """
 tree_grammar = r"""
     ?start: _NL* statement_list
 
@@ -32,13 +16,15 @@ tree_grammar = r"""
 
     var: NAME
 
-    expression: var
-            | NUMBER 
+    ?expression: var
+            | literal 
             | expression ">" expression -> gt
             | expression "<" expression -> lt
             | expression ">=" expression -> ge
             | expression "<=" expression -> le
             | expression "==" expression -> eq
+
+    literal: NUMBER
 
     %import common.CNAME -> NAME
     %import common.INT -> NUMBER 
@@ -61,34 +47,46 @@ parser = Lark(tree_grammar, parser='lalr', postlex=TreeIndenter())
 
 test_tree = """
 test=1
-test=2
-if FIRSTIF==1:
-    test2 = 2
-    test2 = 2
-    test2 = 2
-    if SECONDIF==1:
-        test3=3
-    test1 = 1
-    prev=1
-test=1
+test2=2
+if test2==2:
+    test3=3
+    test4=4
+    if test3==3:
+        test4=4
 """
 
 def translate(t):
-    try:
-        if t.data == "statement_list":
-            return '\n'.join(map(translate, t.children))
-        elif t.data == "block":
-            return '\n'.join(map(translate, t.children))
-        elif t.data == "if_statement":
-            print("IF STATEMENT")
-        print(t)
-    except TypeError:
-        print("error")
-            
+    if t.data == "statement_list":
+        x = map(translate, t.children)
+        return [a for a in map(translate, t.children)]
+    elif t.data == "assignment":
+        lhs, rhs = t.children
+        return f'int {translate(lhs)} = {translate(rhs)};'
+    elif t.data in ["literal", "var"]:
+        return t.children[0]
+
+    # if statements
+
+    elif t.data == "block":
+        x = translate(t.children[0])
+        return x + "\n{\n" + '\n'.join(translate(t.children[1])) + "\n}"
+
+
+    elif t.data == "if_statement":
+        print(len(t.children))
+        return f'if {translate(t.children[0])}:'
+
+    elif t.data == "eq":
+        print("TEST")
+        lhs, rhs = t.children
+        return f'{translate(lhs)} == {translate(rhs)}'
+        
 
 def test():
     parse_tree = parser.parse(test_tree)
-    print(translate(parse_tree))
+    print("======CODE=======")
+    print('\n'.join(translate(parse_tree)))
+    print("======TREE=======")
     print(parse_tree.pretty())
 
 if __name__ == '__main__':
