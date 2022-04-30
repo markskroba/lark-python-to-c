@@ -60,6 +60,7 @@ def translate(t):
         x = map(translate, t.children)
         return [a for a in map(translate, t.children)]
     elif t.data == "assignment":
+
         lhs, rhs = t.children
         return f'int {translate(lhs)} = {translate(rhs)};'
     elif t.data in ["literal", "var"]:
@@ -81,6 +82,7 @@ def translate(t):
         lhs, rhs = t.children
         return f'{translate(lhs)} == {translate(rhs)}'
         
+
 
 def test():
     parse_tree = parser.parse(test_tree)
