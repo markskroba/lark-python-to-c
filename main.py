@@ -18,6 +18,9 @@ tree_grammar = r"""
 
     ?expression: var
             | literal 
+            | "not" expression -> not
+            | expression "or" expression -> or
+            | expression "and" expression -> and
             | expression ">" expression -> gt
             | expression "<" expression -> lt
             | expression ">=" expression -> ge
@@ -43,16 +46,11 @@ class TreeIndenter(Indenter):
     DEDENT_type = '_DEDENT'
     tab_len = 8
 
-parser = Lark(tree_grammar, parser='lalr', postlex=TreeIndenter())
+parser = Lark(tree_grammar, parser='earley', postlex=TreeIndenter())
 
 test_tree = """
-test=1
-test2=2
-if test2==2:
+if not test1 and test2==2 or test3==3:
     test3=3
-    test4=4
-    if test3==3:
-        test4=4
 """
 
 def translate(t):
@@ -74,13 +72,21 @@ def translate(t):
 
 
     elif t.data == "if_statement":
-        print(len(t.children))
-        return f'if {translate(t.children[0])}:'
+        return f'if ({translate(t.children[0])})'
+
+    elif t.data == "or":
+        return(f'{translate(t.children[0])} || {translate(t.children[1])}')
+
+    elif t.data == "and":
+        return(f'{translate(t.children[0])} && {translate(t.children[1])}')
+
+    elif t.data == "not":
+        return(f'!{translate(t.children[0])}')
 
     elif t.data == "eq":
-        print("TEST")
         lhs, rhs = t.children
         return f'{translate(lhs)} == {translate(rhs)}'
+
         
 
 
