@@ -8,11 +8,13 @@ tree_grammar = r"""
 
     ?statement: assignment | block
 
-    ?block: (if_statement) _NL [_INDENT statement_list _DEDENT]
+    ?block: (if_statement | else_statement | elif_statement) _NL [_INDENT statement_list _DEDENT]
 
     assignment: var "=" expression _NL*
 
     if_statement: "if" expression ":"
+    else_statement: "else" ":"
+    elif_statement: "elif" expression ":"
 
     var: NAME
 
@@ -49,7 +51,11 @@ class TreeIndenter(Indenter):
 parser = Lark(tree_grammar, parser='earley', postlex=TreeIndenter())
 
 test_tree = """
-if not test1 and test2==2 or test3==3:
+if test2==2:
+    test1=2
+elif test3==3:
+    test2=2
+else:
     test3=3
 """
 
@@ -78,6 +84,7 @@ def translate(t):
         lhs, rhs = t.children
         return(f'{translate(lhs)} && {translate(rhs)}')
     elif t.data == "not":
+        # not working rn, needs fix
         lhs = t.children
         return(f'!{translate(lhs)}')
     elif t.data == "eq":
@@ -102,7 +109,7 @@ def translate(t):
 def test():
     parse_tree = parser.parse(test_tree)
     print("======CODE=======")
-    print('\n'.join(translate(parse_tree)))
+    # print('\n'.join(translate(parse_tree)))
     print("======TREE=======")
     print(parse_tree.pretty())
 
