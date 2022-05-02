@@ -58,34 +58,43 @@ def translate(t):
         x = map(translate, t.children)
         return [a for a in map(translate, t.children)]
     elif t.data == "assignment":
-
         lhs, rhs = t.children
         return f'int {translate(lhs)} = {translate(rhs)};'
     elif t.data in ["literal", "var"]:
         return t.children[0]
 
-    # if statements
-
+    # parsing blocks
     elif t.data == "block":
         x = translate(t.children[0])
         return x + "\n{\n" + '\n'.join(translate(t.children[1])) + "\n}"
-
-
     elif t.data == "if_statement":
         return f'if ({translate(t.children[0])})'
 
+    # parsing expressions
     elif t.data == "or":
-        return(f'{translate(t.children[0])} || {translate(t.children[1])}')
-
+        lhs, rhs = t.children
+        return(f'{translate(lhs)} || {translate(rhs)}')
     elif t.data == "and":
-        return(f'{translate(t.children[0])} && {translate(t.children[1])}')
-
+        lhs, rhs = t.children
+        return(f'{translate(lhs)} && {translate(rhs)}')
     elif t.data == "not":
-        return(f'!{translate(t.children[0])}')
-
+        lhs = t.children
+        return(f'!{translate(lhs)}')
     elif t.data == "eq":
         lhs, rhs = t.children
         return f'{translate(lhs)} == {translate(rhs)}'
+    elif t.data == "gt":
+        lhs, rhs = t.children
+        return f'{translate(lhs)} > {translate(rhs)}'
+    elif t.data == "lt":
+        lhs, rhs = t.children
+        return f'{translate(lhs)} < {translate(rhs)}'
+    elif t.data == "ge":
+        lhs, rhs = t.children
+        return f'{translate(lhs)} >= {translate(rhs)}'
+    elif t.data == "le":
+        lhs, rhs = t.children
+        return f'{translate(lhs)} <= {translate(rhs)}'
 
         
 
