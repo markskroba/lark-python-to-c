@@ -75,6 +75,10 @@ def translate(t):
         return x + "\n{\n" + '\n'.join(translate(t.children[1])) + "\n}"
     elif t.data == "if_statement":
         return f'if ({translate(t.children[0])})'
+    elif t.data == "elif_statement":
+        return f'else if ({translate(t.children[0])})'
+    elif t.data == "else_statement":
+        return 'else'
 
     # parsing expressions
     elif t.data == "or":
@@ -109,7 +113,7 @@ def translate(t):
 def test():
     parse_tree = parser.parse(test_tree)
     print("======CODE=======")
-    # print('\n'.join(translate(parse_tree)))
+    print('\n'.join(translate(parse_tree)))
     print("======TREE=======")
     print(parse_tree.pretty())
 
