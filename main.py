@@ -6,11 +6,12 @@ tree_grammar = r"""
 
     statement_list: statement+ 
 
-    ?statement: assignment | block
+    ?statement: assignment | block | return_statement
 
     ?block: (if_statement | else_statement | elif_statement | function_signature) _NL [_INDENT statement_list _DEDENT]
 
     assignment: var "=" expression _NL*
+    return_statement: "return" expression _NL*
 
     if_statement: "if" expression ":"
     else_statement: "else" ":"
@@ -59,13 +60,15 @@ def fact(n, m, j, k):
     i = 0
     r = 0
     r = 1
+
+    return r
 """
 
 fact = """
 def fact(n):
-    i = 0;
-    r = 0;
-    r = 1;
+    i = 0
+    r = 0
+    r = 1
     for i in range(2, n+1):
         print(i)
         r = r * i
@@ -80,6 +83,7 @@ def translate(t):
     if t.data == "statement_list":
         x = map(translate, t.children)
         return [a for a in map(translate, t.children)]
+
     elif t.data == "assignment":
         lhs, rhs = t.children
 
@@ -87,6 +91,8 @@ def translate(t):
             return f'int {translate(lhs)};'
         else:
             return f'{translate(lhs)} = {translate(rhs)};'
+    elif t.data == "return_statement":
+        return f'return {translate(t.children[0])};'
     elif t.data in ["literal", "var"]:
         return t.children[0]
 
@@ -143,11 +149,11 @@ def translate(t):
 
 def test():
     parse_tree = parser.parse(test_tree)
+    print("======TREE=======")
+    print(parse_tree.pretty())
     print("======CODE=======")
     print('\n'.join(translate(parse_tree)))
     # test_translate(parse_tree)
-    print("======TREE=======")
-    print(parse_tree.pretty())
 
 if __name__ == '__main__':
     test()
