@@ -16,9 +16,8 @@ tree_grammar = r"""
     else_statement: "else" ":"
     elif_statement: "elif" expression ":"
 
-    function: "def" NAME "("  ")" "->" type ":"
-    type: "int" -> int
-    parameters: NAME
+    function: "def" NAME "(" parameters ")" ":"
+    parameters: (var ",")* var*
 
     var: NAME
 
@@ -55,16 +54,25 @@ class TreeIndenter(Indenter):
 parser = Lark(tree_grammar, parser='earley', postlex=TreeIndenter())
 
 test_tree = """
-if test2==2:
-    test1=2
-elif test3==3:
-    test2=2
-else:
-    test3=3
+def fact(n, m, j, k):
+    i = 0
+    r = 0
+    r = 1
+"""
 
-def test_func() -> int:
-    test=1
-    test2=2
+fact = """
+def fact(n):
+    i = 0;
+    r = 0;
+    r = 1;
+    for i in range(2, n+1):
+        print(i)
+        r = r * i
+    
+    return r
+
+if __name__ == "__main__":
+    print(fact(10))
 """
 
 def translate(t):
@@ -73,7 +81,11 @@ def translate(t):
         return [a for a in map(translate, t.children)]
     elif t.data == "assignment":
         lhs, rhs = t.children
-        return f'int {translate(lhs)} = {translate(rhs)};'
+
+        if translate(rhs) == "0":
+            return f'int {translate(lhs)};'
+        else:
+            return f'{translate(lhs)} = {translate(rhs)};'
     elif t.data in ["literal", "var"]:
         return t.children[0]
 
@@ -117,11 +129,11 @@ def translate(t):
 
     # functions
     elif t.data == "function":
-        func_name, func_type = t.children
+        func_name, parameters = t.children
 
-        return f'{translate(func_type)} {func_name}()'
-    elif t.data == "int":
-        return "int"
+        return f'{func_name}({translate(parameters)})'
+    elif t.data == "parameters":
+        return ", ".join(map(translate, t.children))
 
 def test_translate(t):
     print(t.data)
