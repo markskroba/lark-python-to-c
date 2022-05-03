@@ -8,7 +8,7 @@ tree_grammar = r"""
 
     ?statement: assignment | block
 
-    ?block: (if_statement | else_statement | elif_statement | function) _NL [_INDENT statement_list _DEDENT]
+    ?block: (if_statement | else_statement | elif_statement | function_signature) _NL [_INDENT statement_list _DEDENT]
 
     assignment: var "=" expression _NL*
 
@@ -16,7 +16,8 @@ tree_grammar = r"""
     else_statement: "else" ":"
     elif_statement: "elif" expression ":"
 
-    function: "def" NAME "(" parameters ")" ":"
+    function: var "(" parameters ")"
+    function_signature: "def" function ":"
     parameters: (var ",")* var*
 
     var: NAME
@@ -129,21 +130,15 @@ def translate(t):
 
     # functions
     elif t.data == "function":
-        func_name, parameters = t.children
+        func_name, func_parameters = t.children
 
-        return f'{func_name}({translate(parameters)})'
+        return f'{translate(func_name)}({translate(func_parameters)})'
+    elif t.data == "function_signature":
+        func = t.children[0]
+
+        return translate(func)
     elif t.data == "parameters":
         return ", ".join(map(translate, t.children))
-
-def test_translate(t):
-    print(t.data)
-    if t.data == "statement_list":
-        return [a for a in map(test_translate, t.children)]
-    elif t.data == "block":
-        return test_translate(t.children[0])
-    elif t.data == "function":
-        # print(t.children[0])
-        pass
 
 
 def test():
