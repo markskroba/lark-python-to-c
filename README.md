@@ -3,7 +3,7 @@
 [from Obfuscated Tiny C Compiler, C Subset Definition](https://bellard.org/otcc/)
 
 * Expressions:
-    * binary operators, by decreasing priority order: ~~'*' '/' '%', '+' '-',~~ '>>' '<<', '<' '<=' '>' '>=', '==' '!=', '&', '^', '|', '=', '&&', '||'.
+    * binary operators, by decreasing priority order: ~~'*' '/' '%', '+' '-',~~ '>>' '<<', ~~'<' '<=' '>' '>=', '==' '!=', '&',~~ '^', ~~'|', '=', '&&', '||'~~.
     * '&&' and '||' have the same semantics as C : left to right evaluation and early exit.
     * ~~Parenthesis are supported.~~
     * Unary operators: '&', '*' (pointer indirection), '-' (negation), '+', '!', '~', post fixed '++' and '--'.
