@@ -34,7 +34,16 @@ tree_grammar = r"""
             | expression "<=" expression -> le
             | expression "==" expression -> eq
 
+            | expression binary_operator expression -> binary
+
+    
+
     literal: NUMBER
+    ?binary_operator: "*" -> binary_multiply
+                | "/" -> binary_divide
+                | "%" -> binary_remainder
+                | "+" -> binary_add
+                | "-" -> binary_substract
 
     %import common.CNAME -> NAME
     %import common.INT -> NUMBER 
@@ -60,6 +69,7 @@ def fact(n, m, j, k):
     i = 0
     r = 0
     r = 1
+    r = r + 1
 
     return r
 """
@@ -69,9 +79,9 @@ def fact(n):
     i = 0
     r = 0
     r = 1
+    r = 2 + 2
     for i in range(2, n+1):
         print(i)
-        r = r * i
     
     return r
 
@@ -145,6 +155,22 @@ def translate(t):
         return translate(func)
     elif t.data == "parameters":
         return ", ".join(map(translate, t.children))
+
+
+    # translating binary operations
+    elif t.data == "binary":
+        lhs, operator, rhs = t.children
+        return f'{translate(lhs)} {translate(operator)} {translate(rhs)}'
+    elif t.data == "binary_multiply":
+        return "*"
+    elif t.data == "binary_divide":
+        return "/"
+    elif t.data == "binary_remainder":
+        return "%"
+    elif t.data == "binary_add":
+        return "+"
+    elif t.data == "binary_substract":
+        return "-"
 
 
 def test():
