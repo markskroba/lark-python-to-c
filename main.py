@@ -6,7 +6,7 @@ tree_grammar = r"""
 
     statement_list: statement+ 
 
-    ?statement: (assignment | block | return_statement | break_statement | print_statement) _NL*
+    ?statement: (assignment | block | return_statement | break_statement | print_statement | expression) _NL*
 
     ?block: (if_statement | else_statement | elif_statement | function_signature | while_statement) _NL [_INDENT statement_list _DEDENT]
 
@@ -22,9 +22,9 @@ tree_grammar = r"""
 
     function: var "(" parameters ")"
     function_signature: "def" function ":"
-    parameters: (var ",")* var*
+    parameters: (expression ",")* expression*
 
-    print_statement: "print" "(" (var) ")" -> print_string
+    print_statement: "print" "(" string ")" -> print_string
                     | "print" "(" string ".format(" ((var) ","*)* "))" -> print_format
 
     var: NAME
@@ -42,6 +42,8 @@ tree_grammar = r"""
             | expression "==" expression -> eq
 
             | expression binary_operator expression -> binary
+            
+            | function
 
     
 
@@ -75,11 +77,11 @@ parser = Lark(tree_grammar, parser='earley', postlex=TreeIndenter())
 test_tree = """
 i = 0
 j = 0
-print(i)
 print("j={}".format(j))
+print("test print")
 
 while i == 0 and j == 0:
-    print(i)
+    print("{}".format(i))
 """
 
 fact = """
@@ -95,6 +97,14 @@ def fact(n):
 
 if __name__ == "__main__":
     print(fact(10))
+"""
+
+fib = """
+def fib(n):
+    if n <= 2:
+        return 1
+    else: 
+        return fib(n-1) + fib(n-2)
 """
 
 def translate(t):
@@ -172,7 +182,7 @@ def translate(t):
     elif t.data == "print_string":
         return f'printf({translate(t.children[0])});'
     elif t.data == "print_format":
-        return f'printf({translate(t.children[0]).replace("{}", "%i")}, {", ".join(map(translate, t.children[1:]))});'
+        return f'printf({(translate(t.children[0]).replace("{}", "%i"))}, {", ".join(map(translate, t.children[1:]))});'
 
     # translating binary operations
     elif t.data == "binary":
@@ -191,7 +201,7 @@ def translate(t):
 
 
 def test():
-    parse_tree = parser.parse(test_tree)
+    parse_tree = parser.parse(fib)
     print("======TREE=======")
     print(parse_tree.pretty())
     print("======CODE=======")
