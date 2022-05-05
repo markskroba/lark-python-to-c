@@ -6,12 +6,12 @@ tree_grammar = r"""
 
     statement_list: statement+ 
 
-    ?statement: assignment | block | return_statement
+    ?statement: (assignment | block | return_statement | print_statement) _NL*
 
     ?block: (if_statement | else_statement | elif_statement | function_signature) _NL [_INDENT statement_list _DEDENT]
 
-    assignment: var "=" expression _NL*
-    return_statement: "return" expression _NL*
+    assignment: var "=" expression
+    return_statement: "return" expression
 
     if_statement: "if" expression ":"
     else_statement: "else" ":"
@@ -21,7 +21,11 @@ tree_grammar = r"""
     function_signature: "def" function ":"
     parameters: (var ",")* var*
 
+    print_statement: "print" "(" (var) ")" -> print_string
+                    | "print" "(" string ".format(" ((var) ","*)* "))" -> print_format
+
     var: NAME
+    string: STRING
 
     ?expression: var
             | literal 
@@ -48,6 +52,7 @@ tree_grammar = r"""
     %import common.CNAME -> NAME
     %import common.INT -> NUMBER 
     %import common.WS_INLINE
+    %import common.ESCAPED_STRING -> STRING
     %declare _INDENT _DEDENT
     %ignore WS_INLINE
 
@@ -65,13 +70,7 @@ class TreeIndenter(Indenter):
 parser = Lark(tree_grammar, parser='earley', postlex=TreeIndenter())
 
 test_tree = """
-def fact(n, m, j, k):
-    i = 0
-    r = 0
-    r = 1
-    r = r + 1
-
-    return r
+print("Test string {} number {}".format(test1, test2))
 """
 
 fact = """
@@ -103,7 +102,7 @@ def translate(t):
             return f'{translate(lhs)} = {translate(rhs)};'
     elif t.data == "return_statement":
         return f'return {translate(t.children[0])};'
-    elif t.data in ["literal", "var"]:
+    elif t.data in ["literal", "var", "string"]:
         return t.children[0]
 
     # parsing blocks
@@ -155,7 +154,11 @@ def translate(t):
         return translate(func)
     elif t.data == "parameters":
         return ", ".join(map(translate, t.children))
-
+    
+    elif t.data == "print_string":
+        return f'printf({translate(t.children[0])})'
+    elif t.data == "print_format":
+        return f'printf({translate(t.children[0]).replace("{}", "%i")}, {", ".join(map(translate, t.children[1:]))})'
 
     # translating binary operations
     elif t.data == "binary":
