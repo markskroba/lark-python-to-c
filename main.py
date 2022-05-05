@@ -6,12 +6,13 @@ tree_grammar = r"""
 
     statement_list: statement+ 
 
-    ?statement: (assignment | block | return_statement | print_statement) _NL*
+    ?statement: (assignment | block | return_statement | break_statement | print_statement) _NL*
 
     ?block: (if_statement | else_statement | elif_statement | function_signature) _NL [_INDENT statement_list _DEDENT]
 
     assignment: var "=" expression
     return_statement: "return" expression
+    break_statement: "break"
 
     if_statement: "if" expression ":"
     else_statement: "else" ":"
@@ -70,7 +71,10 @@ class TreeIndenter(Indenter):
 parser = Lark(tree_grammar, parser='earley', postlex=TreeIndenter())
 
 test_tree = """
-print("Test string {} number {}".format(test1, test2))
+i = 0
+j = 0
+print(i)
+print("j={}".format(j))
 """
 
 fact = """
@@ -102,6 +106,8 @@ def translate(t):
             return f'{translate(lhs)} = {translate(rhs)};'
     elif t.data == "return_statement":
         return f'return {translate(t.children[0])};'
+    elif t.data == "break_statement":
+        return "brake;"
     elif t.data in ["literal", "var", "string"]:
         return t.children[0]
 
@@ -156,9 +162,9 @@ def translate(t):
         return ", ".join(map(translate, t.children))
     
     elif t.data == "print_string":
-        return f'printf({translate(t.children[0])})'
+        return f'printf({translate(t.children[0])});'
     elif t.data == "print_format":
-        return f'printf({translate(t.children[0]).replace("{}", "%i")}, {", ".join(map(translate, t.children[1:]))})'
+        return f'printf({translate(t.children[0]).replace("{}", "%i")}, {", ".join(map(translate, t.children[1:]))});'
 
     # translating binary operations
     elif t.data == "binary":
