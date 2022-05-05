@@ -8,7 +8,7 @@ tree_grammar = r"""
 
     ?statement: (assignment | block | return_statement | break_statement | print_statement) _NL*
 
-    ?block: (if_statement | else_statement | elif_statement | function_signature) _NL [_INDENT statement_list _DEDENT]
+    ?block: (if_statement | else_statement | elif_statement | function_signature | while_statement) _NL [_INDENT statement_list _DEDENT]
 
     assignment: var "=" expression
     return_statement: "return" expression
@@ -17,6 +17,8 @@ tree_grammar = r"""
     if_statement: "if" expression ":"
     else_statement: "else" ":"
     elif_statement: "elif" expression ":"
+
+    while_statement: "while" expression ":"
 
     function: var "(" parameters ")"
     function_signature: "def" function ":"
@@ -75,6 +77,9 @@ i = 0
 j = 0
 print(i)
 print("j={}".format(j))
+
+while i == 0 and j == 0:
+    print(i)
 """
 
 fact = """
@@ -121,6 +126,9 @@ def translate(t):
         return f'else if ({translate(t.children[0])})'
     elif t.data == "else_statement":
         return 'else'
+    
+    elif t.data == "while_statement":
+        return f'while ({translate(t.children[0])})'
 
     # parsing expressions
     elif t.data == "or":
