@@ -25,13 +25,16 @@ tree_grammar = r"""
     parameters: (expression ",")* expression*
 
     print_statement: "print" "(" string ")" -> print_string
-                    | "print" "(" string ".format(" ((var) ","*)* "))" -> print_format
+                    | "print" "(" string ".format(" ((expression) ","*)* ")"* -> print_format
 
     var: NAME
     string: STRING
 
     ?expression: var
-            | literal 
+            | literal
+            | string
+            
+            | function
             | "not" expression -> not
             | expression "or" expression -> or
             | expression "and" expression -> and
@@ -42,8 +45,6 @@ tree_grammar = r"""
             | expression "==" expression -> eq
 
             | expression binary_operator expression -> binary
-            
-            | function
 
     
 
@@ -105,9 +106,12 @@ def fib(n):
         return 1
     else: 
         return fib(n-1) + fib(n-2)
+
+print("{}".format( "test", fib(1,2)))
 """
 
 def translate(t):
+    print(t.data)
     if t.data == "statement_list":
         x = map(translate, t.children)
         return [a for a in map(translate, t.children)]
