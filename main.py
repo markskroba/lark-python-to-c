@@ -1,5 +1,6 @@
 from lark import Lark
 from lark.indenter import Indenter
+import sys
 
 tree_grammar = r"""
     ?start: _NL* statement_list
@@ -246,4 +247,10 @@ def test():
     print('#include <stdio.h>\n' + '<>\n'.join(translate(parse_tree)))
 
 if __name__ == '__main__':
-    test()
+    if len(sys.argv) == 1:
+        print("Pass the path to the file you want to translate as argument")
+    else:
+        with open(sys.argv[1], "r") as f:
+            parse_tree = parser.parse(f.read())
+            print(parse_tree.pretty())
+            print('#include <stdio.h>\n' + '<>\n'.join(translate(parse_tree)))
