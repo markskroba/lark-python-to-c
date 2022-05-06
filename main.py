@@ -28,7 +28,7 @@ tree_grammar = r"""
 
     print_function: "print" "(" string ")" -> print_string
                     | "print" "(" string ".format(" ((expression) ","*)* ")"* -> print_format
-    range_function: "range" "(" literal ("," (literal|"-"literal))~0..2 ")"
+    range_function: "range" "(" expression ("," (expression))~0..2 ")"
 
     var: NAME
     string: STRING
@@ -157,8 +157,7 @@ def translate(t):
     elif t.data == "for_statement":
         conditions = translate(t.children[1])
         variable = translate(t.children[0])
-        print(int(conditions[2]))
-# 
+
         if len(conditions) == 1:
             start = 0
             stop = conditions[0]
@@ -221,7 +220,8 @@ def translate(t):
     elif t.data == "print_string":
         return f'printf({translate(t.children[0])});'
     elif t.data == "print_format":
-        return f'printf({(translate(t.children[0]).replace("{}", "%i"))}, {", ".join(map(translate, t.children[1:]))});'
+        return_string = translate(t.children[0]).replace("{}", "%i")
+        return f'printf({return_string}, {", ".join(map(translate, t.children[1:]))});'
 
     # translating binary operations
     elif t.data == "binary":
@@ -257,6 +257,6 @@ if __name__ == '__main__':
             if sys.argv[2] == "translate":
                 if len(sys.argv) > 3:
                     with open(sys.argv[3], "w") as f_out:
-                        f_out.write('#include <stdio.h>\n' + '<>\n'.join(translate(parse_tree)))
+                        f_out.write('#include <stdio.h>\n' + '\n'.join(translate(parse_tree)))
                 else:
-                    print('#include <stdio.h>\n' + '<>\n'.join(translate(parse_tree)))
+                    print('#include <stdio.h>\n' + '\n'.join(translate(parse_tree)))
