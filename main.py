@@ -218,9 +218,10 @@ def translate(t):
         return ", ".join(map(translate, t.children))
     
     elif t.data == "print_string":
-        return f'printf({translate(t.children[0])});'
+        return_string = "\"" + translate(t.children[0]).replace("\"", "") + "\\n" + "\""
+        return f'printf({return_string});'
     elif t.data == "print_format":
-        return_string = translate(t.children[0]).replace("{}", "%i")
+        return_string = "\"" + translate(t.children[0]).replace("{}", "%i").replace("\"", "") + "\\n" + "\""
         return f'printf({return_string}, {", ".join(map(translate, t.children[1:]))});'
 
     # translating binary operations
