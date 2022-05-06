@@ -252,5 +252,11 @@ if __name__ == '__main__':
     else:
         with open(sys.argv[1], "r") as f:
             parse_tree = parser.parse(f.read())
-            print(parse_tree.pretty())
-            print('#include <stdio.h>\n' + '<>\n'.join(translate(parse_tree)))
+            if sys.argv[2] == "tree":
+                print(parse_tree.pretty())
+            if sys.argv[2] == "translate":
+                if len(sys.argv) > 3:
+                    with open(sys.argv[3], "w") as f_out:
+                        f_out.write('#include <stdio.h>\n' + '<>\n'.join(translate(parse_tree)))
+                else:
+                    print('#include <stdio.h>\n' + '<>\n'.join(translate(parse_tree)))
