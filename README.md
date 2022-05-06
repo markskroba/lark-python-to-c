@@ -59,4 +59,4 @@ The goal was to get as close as possible to translating Python to [C Subset Defi
 
 * Function declaration
   - `if __name__="__main__":` will be translated to `int main(){ }`
-  * Since it seems that `return`-statements is not always required (even for `main()`), it will be added only it was present in the Python code
+  * Since it seems that `return`-statements are not always required (even for `main()`), it will be added only it was present in the Python code
