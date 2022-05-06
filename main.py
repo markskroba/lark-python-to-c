@@ -197,13 +197,6 @@ def translate(t):
         return "-"
 
 
-def test():
-    parse_tree = parser.parse(fib)
-    print("======TREE=======")
-    print(parse_tree.pretty())
-    print("======CODE=======")
-    print('#include <stdio.h>\n' + '<>\n'.join(translate(parse_tree)))
-
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         print("Pass the path to the file you want to translate as argument")
