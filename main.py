@@ -94,7 +94,7 @@ def translate(t):
     elif t.data == "return_statement":
         return f'return {translate(t.children[0])};'
     elif t.data == "break_statement":
-        return "brake;"
+        return "break;"
     elif t.data in ["literal", "var", "string"]:
         return t.children[0]
 
