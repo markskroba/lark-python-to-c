@@ -136,7 +136,6 @@ def translate(t):
     elif t.data in ["literal", "var", "string"]:
         return t.children[0]
 
-    # parsing blocks
     elif t.data == "block":
         x = translate(t.children[0])
         return x + "\n{\n" + '\n'.join(translate(t.children[1])) + "\n}"
@@ -157,7 +156,6 @@ def translate(t):
     elif t.data == "for_statement":
         conditions = translate(t.children[1])
         variable = translate(t.children[0])
-        negative_step = False
         print(int(conditions[2]))
 # 
         if len(conditions) == 1:
@@ -245,8 +243,7 @@ def test():
     print("======TREE=======")
     print(parse_tree.pretty())
     print("======CODE=======")
-    print('\n'.join(translate(parse_tree)))
-    # test_translate(parse_tree)
+    print('#include <stdio.h>\n' + '<>\n'.join(translate(parse_tree)))
 
 if __name__ == '__main__':
     test()
