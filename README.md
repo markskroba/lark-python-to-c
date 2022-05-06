@@ -26,8 +26,10 @@ python main.py <filename> tree|translate <output_filename>
   - According to [C Subset Definition for OTCC](https://bellard.org/tcc/), variables cannot be initialized in declarations. Because of that, assigning 0 to a variable will be translated as declaring it.
   ```
   i = 0
+  j = k = l = 0
   # will be translated to
   int i;
+  int j,k,l;
   ```
 - For-loops
   - `range()` should be used to define how many iterations will occur

@@ -7,11 +7,12 @@ tree_grammar = r"""
 
     statement_list: statement+ 
 
-    ?statement: (assignment | block | return_statement | break_statement | print_function | expression | range_function) _NL*
+    ?statement: (assignment | block | return_statement | break_statement | print_function | expression | range_function | variable_declaration) _NL*
 
     ?block: (if_statement | else_statement | elif_statement | function_signature | while_statement | for_statement) _NL [_INDENT statement_list _DEDENT]
 
     assignment: var "=" expression
+    variable_declaration: (var "=")+ "0"
     return_statement: "return" expression
     break_statement: "break"
 
@@ -38,7 +39,6 @@ tree_grammar = r"""
             | string
             
             | function
-            | "not" expression -> not
             | expression "or" expression -> or
             | expression "and" expression -> and
             | expression ">" expression -> gt
@@ -78,46 +78,6 @@ class TreeIndenter(Indenter):
 
 parser = Lark(tree_grammar, parser='earley', postlex=TreeIndenter())
 
-test_tree = """
-i = 0
-j = 0
-print("j={}".format(j))
-print("test print")
-
-while i == 0 and j == 0:
-    print("{}".format(i))
-"""
-
-fact = """
-def fact(n):
-    i = 0
-    r = 0
-    r = 1
-    r = 2 + 2
-    for i in range(2, n+1):
-        print(i)
-    
-    return r
-
-if __name__ == "__main__":
-    print(fact(10))
-"""
-
-fib = """
-def fib(n):
-    if n <= 2:
-        return 1
-    else: 
-        return fib(n-1) + fib(n-2)
-
-print("{}".format( "test", fib(1,2)))
-if __name__ == "__main__":
-    print("test")
-
-    for i in range(10,1,-1):
-        print("test")
-"""
-
 def translate(t):
     if t.data == "statement_list":
         x = map(translate, t.children)
@@ -126,10 +86,11 @@ def translate(t):
     elif t.data == "assignment":
         lhs, rhs = t.children
 
-        if translate(rhs) == "0":
-            return f'int {translate(lhs)};'
-        else:
-            return f'{translate(lhs)} = {translate(rhs)};'
+        return f'{translate(lhs)} = {translate(rhs)};'
+
+    elif t.data == "variable_declaration":
+        return f'int {", ".join(map(translate, t.children))};'    
+    
     elif t.data == "return_statement":
         return f'return {translate(t.children[0])};'
     elif t.data == "break_statement":
@@ -185,10 +146,6 @@ def translate(t):
     elif t.data == "and":
         lhs, rhs = t.children
         return(f'{translate(lhs)} && {translate(rhs)}')
-    elif t.data == "not":
-        # not working rn, needs fix
-        lhs = t.children
-        return(f'!{translate(lhs)}')
     elif t.data == "eq":
         lhs, rhs = t.children
         return f'{translate(lhs)} == {translate(rhs)}'
