@@ -6,9 +6,9 @@ tree_grammar = r"""
 
     statement_list: statement+ 
 
-    ?statement: (assignment | block | return_statement | break_statement | print_statement | expression) _NL*
+    ?statement: (assignment | block | return_statement | break_statement | print_function | expression | range_function) _NL*
 
-    ?block: (if_statement | else_statement | elif_statement | function_signature | while_statement) _NL [_INDENT statement_list _DEDENT]
+    ?block: (if_statement | else_statement | elif_statement | function_signature | while_statement | for_statement) _NL [_INDENT statement_list _DEDENT]
 
     assignment: var "=" expression
     return_statement: "return" expression
@@ -19,13 +19,15 @@ tree_grammar = r"""
     elif_statement: "elif" expression ":"
 
     while_statement: "while" expression ":"
+    for_statement: "for" var "in" range_function ":"
 
     function: var "(" parameters ")"
     function_signature: "def" function ":"
     parameters: (expression ",")* expression*
 
-    print_statement: "print" "(" string ")" -> print_string
+    print_function: "print" "(" string ")" -> print_string
                     | "print" "(" string ".format(" ((expression) ","*)* ")"* -> print_format
+    range_function: "range" "(" literal ("," (literal|"-"literal))~0..2 ")"
 
     var: NAME
     string: STRING
@@ -110,6 +112,9 @@ def fib(n):
 print("{}".format( "test", fib(1,2)))
 if __name__ == "__main__":
     print("test")
+
+    for i in range(10,1,-1):
+        print("test")
 """
 
 def translate(t):
@@ -149,6 +154,31 @@ def translate(t):
     
     elif t.data == "while_statement":
         return f'while ({translate(t.children[0])})'
+    elif t.data == "for_statement":
+        conditions = translate(t.children[1])
+        variable = translate(t.children[0])
+        negative_step = False
+        print(int(conditions[2]))
+# 
+        if len(conditions) == 1:
+            start = 0
+            stop = conditions[0]
+            step = 1
+        elif len(conditions) == 2:
+            start = conditions[0]
+            stop = conditions[1]
+            step = 1
+        elif len(conditions) == 3:
+            start = conditions[0]
+            stop = conditions[1]
+            step = conditions[2]
+                
+        if start > stop:
+            return f'for (int {variable} = {start}; {variable} > {stop}; {variable} -= {step})'
+        else:
+            return f'for (int {variable} = {start}; {variable} < {stop}; {variable} += {step})'
+    elif t.data == "range_function":
+        return [x for x in map(translate, t.children)]
 
     # parsing expressions
     elif t.data == "or":
