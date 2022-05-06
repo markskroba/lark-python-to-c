@@ -108,10 +108,11 @@ def fib(n):
         return fib(n-1) + fib(n-2)
 
 print("{}".format( "test", fib(1,2)))
+if __name__ == "__main__":
+    print("test")
 """
 
 def translate(t):
-    print(t.data)
     if t.data == "statement_list":
         x = map(translate, t.children)
         return [a for a in map(translate, t.children)]
@@ -135,7 +136,12 @@ def translate(t):
         x = translate(t.children[0])
         return x + "\n{\n" + '\n'.join(translate(t.children[1])) + "\n}"
     elif t.data == "if_statement":
-        return f'if ({translate(t.children[0])})'
+
+        condition = translate(t.children[0])
+        if condition == "__name__ == \"__main__\"":
+            return f'int main()'
+
+        return f'if ({condition})'
     elif t.data == "elif_statement":
         return f'else if ({translate(t.children[0])})'
     elif t.data == "else_statement":
